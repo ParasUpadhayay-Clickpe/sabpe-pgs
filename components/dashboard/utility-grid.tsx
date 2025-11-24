@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import * as Icons from 'lucide-react';
+import type React from 'react';
 
 import type { Utility, UtilityType } from '../../lib/types/utility.types';
 import type { PaymentGateway } from '../../lib/types/gateway.types';
@@ -24,7 +25,10 @@ export function UtilityGrid({ utilities, gateway, showRemove, onRemoveTerminal }
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             {utilities.map((utility) => {
                 const Icon =
-                    Icons[utility.icon as keyof typeof Icons] ?? Icons.CircleDot;
+                    (Icons[utility.icon as keyof typeof Icons] ??
+                        Icons.CircleDot) as React.ComponentType<
+                            React.SVGProps<SVGSVGElement>
+                        >;
 
                 return (
                     <Card

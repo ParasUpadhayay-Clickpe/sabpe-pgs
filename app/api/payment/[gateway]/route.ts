@@ -15,21 +15,23 @@ async function getCredentials(gateway: string, utility: string) {
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { gateway: string } },
+    context: { params: Promise<{ gateway: string }> },
 ) {
     try {
+        const { gateway } = await context.params;
+
         const body = await request.json();
         const validatedData = paymentRequestSchema.parse(body);
 
         const credentials = await getCredentials(
-            params.gateway,
+            gateway,
             validatedData.utility,
         );
 
         return NextResponse.json({
             success: true,
             data: {
-                gateway: params.gateway,
+                gateway,
                 utility: validatedData.utility,
                 credentials,
                 context: validatedData,
