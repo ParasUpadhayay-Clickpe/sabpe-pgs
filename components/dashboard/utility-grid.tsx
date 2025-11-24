@@ -6,7 +6,6 @@ import * as Icons from 'lucide-react';
 import type { Utility, UtilityType } from '../../lib/types/utility.types';
 import type { PaymentGateway } from '../../lib/types/gateway.types';
 import { Card } from '../ui/card';
-import { Button } from '../ui/button';
 
 interface UtilityGridProps {
     utilities: Utility[];
@@ -17,7 +16,6 @@ interface UtilityGridProps {
 
 /**
  * Grid of utilities for a selected gateway.
- * Each utility (terminal) can be opened in UAT or PROD mode.
  */
 export function UtilityGrid({ utilities, gateway, showRemove, onRemoveTerminal }: UtilityGridProps) {
     const router = useRouter();
@@ -32,7 +30,8 @@ export function UtilityGrid({ utilities, gateway, showRemove, onRemoveTerminal }
                     <Card
                         key={utility.id}
                         isHoverable
-                        className="group text-center"
+                        onClick={() => router.push(`/${gateway}/${utility.id}`)}
+                        className="group relative text-center"
                     >
                         <div className="flex flex-col items-center gap-4">
                             <div className="rounded-full bg-blue-50 p-4 transition-colors group-hover:bg-blue-100 dark:bg-slate-800/70 dark:group-hover:bg-slate-700">
@@ -49,39 +48,22 @@ export function UtilityGrid({ utilities, gateway, showRemove, onRemoveTerminal }
                             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500 dark:bg-slate-800 dark:text-slate-300">
                                 {utility.category}
                             </span>
-
-                            <div className="mt-2 flex gap-2">
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={() =>
-                                        router.push(`/${gateway}/${utility.id}?mode=uat`)
-                                    }
-                                >
-                                    UAT
-                                </Button>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    onClick={() =>
-                                        router.push(`/${gateway}/${utility.id}?mode=prod`)
-                                    }
-                                >
-                                    PROD
-                                </Button>
-                            </div>
-
                             {showRemove && onRemoveTerminal && (
                                 <button
                                     type="button"
+                                    aria-label="Remove terminal"
                                     onClick={(event) => {
                                         event.stopPropagation();
-                                        onRemoveTerminal(utility.id);
+                                        const confirmed = window.confirm(
+                                            `Remove this terminal for ${utility.displayName}?`,
+                                        );
+                                        if (confirmed) {
+                                            onRemoveTerminal(utility.id);
+                                        }
                                     }}
-                                    className="mt-1 text-xs font-medium text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                    className="absolute right-3 top-3 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-red-500 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-red-400"
                                 >
-                                    Remove terminal
+                                    <Icons.X className="h-3 w-3" />
                                 </button>
                             )}
                         </div>

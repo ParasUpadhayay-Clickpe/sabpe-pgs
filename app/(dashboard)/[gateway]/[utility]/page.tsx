@@ -4,30 +4,39 @@ import { GATEWAYS } from '../../../../lib/constants/gateways';
 import { UTILITIES } from '../../../../lib/constants/utilities';
 import { Breadcrumb } from '../../../../components/dashboard/breadcrumb';
 import { PaymentWrapper } from '../../../../components/payment/payment-wrapper';
+import { Pay10TerminalPayment } from '../../../../components/payment/pay10-terminal-payment';
 
-interface PaymentPageProps {
-    params: {
-        gateway: string;
-        utility: string;
-    };
-    searchParams?: {
-        mode?: string;
-    };
+interface PaymentPageParams {
+    gateway: string;
+    utility: string;
 }
 
-export default function PaymentPage({ params, searchParams }: PaymentPageProps) {
-    const gateway = GATEWAYS.find((g) => g.id === params.gateway);
-    const utility = UTILITIES.find((u) => u.id === params.utility);
+interface PaymentPageSearchParams {
+    mode?: string;
+}
 
-    if (!gateway || !utility) {
+export default async function PaymentPage({
+    params,
+    searchParams,
+}: {
+    params: Promise<PaymentPageParams>;
+    searchParams?: Promise<PaymentPageSearchParams>;
+}) {
+    const { gateway, utility } = await params;
+    const resolvedSearch = (await searchParams) ?? {};
+
+    const gatewayConfig = GATEWAYS.find((g) => g.id === gateway);
+    const utilityConfig = UTILITIES.find((u) => u.id === utility);
+
+    if (!gatewayConfig || !utilityConfig) {
         notFound();
     }
 
-    if (!gateway.supportedUtilities.includes(utility.id)) {
+    if (!gatewayConfig.supportedUtilities.includes(utilityConfig.id)) {
         notFound();
     }
 
-    const modeParam = (searchParams?.mode ?? 'uat').toLowerCase();
+    const modeParam = (resolvedSearch.mode ?? 'uat').toLowerCase();
     const mode = modeParam === 'prod' ? 'prod' : 'uat';
 
     return (
@@ -35,28 +44,28 @@ export default function PaymentPage({ params, searchParams }: PaymentPageProps) 
             <Breadcrumb
                 items={[
                     { label: 'Dashboard', href: '/' },
-                    { label: gateway.displayName, href: `/${gateway.id}` },
+                    { label: gatewayConfig.displayName, href: `/${gatewayConfig.id}` },
                     {
-                        label: utility.displayName,
-                        href: `/${gateway.id}/${utility.id}?mode=${mode}`,
+                        label: utilityConfig.displayName,
+                        href: `/${gatewayConfig.id}/${utilityConfig.id}?mode=${mode}`,
                     },
                 ]}
             />
 
             <div className="mb-8 mt-6">
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                    {utility.displayName} Payment ({mode.toUpperCase()})
+                    {utilityConfig.displayName} Payment
                 </h1>
                 <p className="mt-2 max-w-xl text-sm text-slate-600 dark:text-slate-400">
-                    Processing via {gateway.displayName} in {mode.toUpperCase()} mode.
+                    Processing via {gatewayConfig.displayName}.
                 </p>
             </div>
 
-            <PaymentWrapper
-                gateway={params.gateway}
-                utility={params.utility}
-                mode={mode}
-            />
+            {gatewayConfig.id === 'pay10' ? (
+                <Pay10TerminalPayment gatewayId={gateway} utilityId={utility} />
+            ) : (
+                <PaymentWrapper gateway={gateway} utility={utility} mode={mode} />
+            )}
         </div>
     );
 }

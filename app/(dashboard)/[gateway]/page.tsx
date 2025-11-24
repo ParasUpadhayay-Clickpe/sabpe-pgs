@@ -3,15 +3,18 @@ import { UTILITIES } from '../../../lib/constants/utilities';
 import { Breadcrumb } from '../../../components/dashboard/breadcrumb';
 import { GatewayTerminals } from '../../../components/dashboard/gateway-terminals';
 
-interface GatewayPageProps {
-    params: {
-        gateway: string;
-    };
-}
+export default async function GatewayPage({
+    params,
+}: {
+    params: Promise<{ gateway: string }>;
+}) {
+    const { gateway } = await params;
 
-export default function GatewayPage({ params }: GatewayPageProps) {
-    const gatewayId = params?.gateway;
-    const gateway = GATEWAYS.find((g) => g.id === gatewayId);
+    const rawGatewayId = gateway ?? '';
+    const gatewayId = rawGatewayId.toLowerCase();
+    const gatewayConfig = GATEWAYS.find(
+        (g) => g.id.toLowerCase() === gatewayId,
+    );
 
     return (
         <div>
@@ -19,32 +22,32 @@ export default function GatewayPage({ params }: GatewayPageProps) {
                 items={[
                     { label: 'Dashboard', href: '/' },
                     {
-                        label: gateway?.displayName ?? 'Gateway',
-                        href: `/${gatewayId}`,
+                        label: gatewayConfig?.displayName ?? 'Gateway',
+                        href: `/${rawGatewayId}`,
                     },
                 ]}
             />
 
             <div className="mb-8 mt-6">
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                    {gateway?.displayName ?? 'Gateway'} - Select Utility
+                    {gatewayConfig?.displayName ?? 'Gateway'} - Select Utility
                 </h1>
                 <p className="mt-2 max-w-xl text-sm text-slate-600 dark:text-slate-400">
-                    {gateway?.description ??
+                    {gatewayConfig?.description ??
                         'No gateway configuration found for this ID. Update GATEWAYS to add it.'}
                 </p>
             </div>
 
-            {gateway ? (
+            {gatewayConfig ? (
                 <GatewayTerminals
-                    gatewayId={gateway.id}
+                    gatewayId={gatewayConfig.id}
                     allUtilities={UTILITIES}
-                    initialUtilityIds={gateway.supportedUtilities}
+                    initialUtilityIds={gatewayConfig.supportedUtilities}
                 />
             ) : (
                 <div className="rounded-xl border border-dashed border-slate-300 bg-white/70 p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400">
-                    Gateway ID <span className="font-mono">{gatewayId}</span> is not defined in your
-                    configuration.
+                    Gateway ID <span className="font-mono">{rawGatewayId}</span> is not
+                    defined in your configuration.
                 </div>
             )}
         </div>
