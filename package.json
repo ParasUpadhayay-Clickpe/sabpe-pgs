@@ -11,7 +11,13 @@
   "dependencies": {
     "next": "16.0.4",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.469.0",
+    "tailwind-merge": "^2.5.4",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.0-rc.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
