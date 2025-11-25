@@ -127,14 +127,21 @@ export function Pay10TerminalPayment({
             // Generate random ORDER_ID
             const orderId = generateRandomOrderId();
 
+            // Build RETURN_URL pointing to Next.js callback handler
+            const origin =
+                typeof window !== 'undefined' ? window.location.origin : '';
+            const returnUrl = origin
+                ? `${origin}/api/pay10/callback`
+                : 'https://sabpe.com/api/pay10/callback';
+
             // Fixed fields as per your HTML demo
             const params: Record<string, string> = {
                 ORDER_ID: orderId,
-                // Use the raw string (like in index.html form) rather than forcing 2 decimals
-                AMOUNT: amountString,
+                // Amount entered in rupees -> send in paise by appending "00" to the integer part
+                AMOUNT: `${Math.trunc(numericAmount)}00`,
                 TXNTYPE: 'SALE',
                 CURRENCY_CODE: '356', // INR
-                RETURN_URL: 'https://pay10-backend.onrender.com/callback',
+                RETURN_URL: returnUrl,
                 PAY_ID: terminal.payloadId,
             };
 
@@ -145,13 +152,6 @@ export function Pay10TerminalPayment({
             const stringToHash = concatenated + terminal.secretKey;
 
             const hash = await sha256HexUpper(stringToHash);
-
-            // Helpful for debugging parity with index.html if needed
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('Pay10 params:', params);
-                console.log('Pay10 stringToHash:', stringToHash);
-                console.log('Pay10 HASH:', hash);
-            }
 
             // Create and submit a temporary form to Pay10 payment URL
             const tempForm = document.createElement('form');
