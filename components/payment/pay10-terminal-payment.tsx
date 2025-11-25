@@ -165,17 +165,6 @@ export function Pay10TerminalPayment({
 
             const hash = await sha256HexUpper(stringToHash);
 
-            // Log the exact request payload (for debugging) before submitting to Pay10.
-            if (process.env.NODE_ENV !== 'production') {
-                // This shows all fields being posted and the HASH used.
-                // It only logs on the client console, not sent anywhere else.
-                // eslint-disable-next-line no-console
-                console.log('Pay10 request fields:', {
-                    ...params,
-                    HASH: hash,
-                });
-            }
-
             // Create and submit a temporary form to Pay10 payment URL
             const tempForm = document.createElement('form');
             tempForm.method = 'POST';
