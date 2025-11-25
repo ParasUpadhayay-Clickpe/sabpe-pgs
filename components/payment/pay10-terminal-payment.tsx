@@ -137,7 +137,7 @@ export function Pay10TerminalPayment({
             // Fixed fields as per your HTML demo
             const params: Record<string, string> = {
                 ORDER_ID: orderId,
-                AMOUNT: `${Math.trunc(numericAmount)}00`,
+                AMOUNT: (numericAmount * 100).toString(),
                 TXNTYPE: 'SALE',
                 CURRENCY_CODE: '356', // INR
                 RETURN_URL: returnUrl,
