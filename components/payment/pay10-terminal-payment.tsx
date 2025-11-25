@@ -137,7 +137,6 @@ export function Pay10TerminalPayment({
             // Fixed fields as per your HTML demo
             const params: Record<string, string> = {
                 ORDER_ID: orderId,
-                // Amount entered in rupees -> send in paise by appending "00" to the integer part
                 AMOUNT: `${Math.trunc(numericAmount)}00`,
                 TXNTYPE: 'SALE',
                 CURRENCY_CODE: '356', // INR
