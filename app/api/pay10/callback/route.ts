@@ -139,7 +139,13 @@ export async function POST(request: NextRequest) {
         status = 'success';
     }
 
-    const origin = new URL(request.url).origin;
+    // Decide where to redirect the user after processing the callback.
+    // Prefer an explicit app origin from env (for production), otherwise fall back to the current request origin.
+    const envOrigin =
+        process.env.NEXT_PUBLIC_APP_ORIGIN ?? process.env.APP_ORIGIN ?? '';
+    const normalizedEnvOrigin = envOrigin.replace(/\/$/, '');
+    const origin =
+        normalizedEnvOrigin || new URL(request.url).origin;
     const search = new URLSearchParams();
     search.set('status', status);
     if (orderId) search.set('orderId', orderId);
