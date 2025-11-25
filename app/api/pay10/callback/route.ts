@@ -142,7 +142,9 @@ export async function POST(request: NextRequest) {
     // Decide where to redirect the user after processing the callback.
     // Prefer an explicit app origin from env (for production), otherwise fall back to the current request origin.
     const envOrigin =
-        process.env.NEXT_PUBLIC_APP_ORIGIN ?? process.env.APP_ORIGIN ?? '';
+        process.env.NEXT_PUBLIC_APP_ORIGIN ??
+        process.env.APP_ORIGIN ??
+        'https://main.d30didj5da2cv2.amplifyapp.com';
     const normalizedEnvOrigin = envOrigin.replace(/\/$/, '');
     const origin =
         normalizedEnvOrigin || new URL(request.url).origin;
