@@ -123,15 +123,20 @@ export async function POST(request: NextRequest) {
         parsed.ORDER_NO ??
         parsed.ORDERNO;
 
-    const statusSource =
-        parsed.STATUS ?? parsed.RESPONSE_CODE ?? parsed.RESPONSE_MESSAGE;
+    // Decide success/failure.
+    // Default to failure; mark success only when gateway clearly says so.
+    let status: 'success' | 'failure' = 'failure';
 
-    let status: 'success' | 'failure' = 'success';
-    if (statusSource) {
-        const s = statusSource.toString().toLowerCase();
-        if (s.includes('fail') || s.includes('decline') || s.includes('error')) {
-            status = 'failure';
-        }
+    const statusText = (parsed.STATUS ?? parsed.RESPONSE_MESSAGE ?? '').toString().toLowerCase();
+    const responseCode = (parsed.RESPONSE_CODE ?? '').toString();
+
+    const looksSuccessful =
+        statusText.includes('success') ||
+        statusText.includes('captur') || // Captured / capture
+        responseCode === '000';
+
+    if (looksSuccessful) {
+        status = 'success';
     }
 
     const origin = new URL(request.url).origin;

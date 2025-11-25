@@ -114,9 +114,17 @@ export function Pay10TerminalPayment({
         if (!terminal) return;
 
         const amountString = amount.trim();
+
+        // Validate format: number with up to 2 decimal places
+        const amountPattern = /^\d+(\.\d{1,2})?$/;
+        if (!amountPattern.test(amountString)) {
+            setError('Please enter a valid amount (up to 2 decimal places).');
+            return;
+        }
+
         const numericAmount = Number(amountString);
-        if (!numericAmount || numericAmount <= 0) {
-            setError('Please enter a valid amount.');
+        if (!numericAmount || numericAmount < 10) {
+            setError('Minimum payment amount is ₹10.');
             return;
         }
 
@@ -134,10 +142,15 @@ export function Pay10TerminalPayment({
                 ? `${origin}/api/pay10/callback`
                 : 'https://sabpe.com/api/pay10/callback';
 
+            // Convert rupees (string) to paise (integer string) using string math to avoid float issues
+            const [whole, fracRaw = ''] = amountString.split('.');
+            const frac = (fracRaw + '00').slice(0, 2); // pad / trim to 2 digits
+            const amountPaise = `${whole}${frac}`;
+
             // Fixed fields as per your HTML demo
             const params: Record<string, string> = {
                 ORDER_ID: orderId,
-                AMOUNT: (numericAmount * 100).toString(),
+                AMOUNT: amountPaise,
                 TXNTYPE: 'SALE',
                 CURRENCY_CODE: '356', // INR
                 RETURN_URL: returnUrl,
@@ -151,6 +164,17 @@ export function Pay10TerminalPayment({
             const stringToHash = concatenated + terminal.secretKey;
 
             const hash = await sha256HexUpper(stringToHash);
+
+            // Log the exact request payload (for debugging) before submitting to Pay10.
+            if (process.env.NODE_ENV !== 'production') {
+                // This shows all fields being posted and the HASH used.
+                // It only logs on the client console, not sent anywhere else.
+                // eslint-disable-next-line no-console
+                console.log('Pay10 request fields:', {
+                    ...params,
+                    HASH: hash,
+                });
+            }
 
             // Create and submit a temporary form to Pay10 payment URL
             const tempForm = document.createElement('form');
@@ -216,7 +240,7 @@ export function Pay10TerminalPayment({
                         <input
                             id="pay10-amount"
                             type="number"
-                            min={1}
+                            min={10}
                             step="0.01"
                             required
                             value={amount}
