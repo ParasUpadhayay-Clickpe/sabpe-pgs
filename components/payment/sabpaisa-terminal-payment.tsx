@@ -1,13 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-    collection,
-    getDocs,
-    limit,
-    query,
-    where,
-} from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 import { submitPaymentForm } from 'sabpaisa-pg-dev';
 
@@ -53,6 +47,7 @@ export function SabPaisaTerminalPayment({
     utilityId,
     mode,
 }: SabPaisaTerminalPaymentProps) {
+    const [terminals, setTerminals] = useState<SabPaisaTerminalConfig[]>([]);
     const [terminal, setTerminal] = useState<SabPaisaTerminalConfig | null>(null);
     const [loadingConfig, setLoadingConfig] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -69,7 +64,6 @@ export function SabPaisaTerminalPayment({
                 const q = query(
                     collection(db, 'gateways', gatewayId, 'terminals'),
                     where('utilityId', '==', utilityId),
-                    limit(1),
                 );
                 const snap = await getDocs(q);
 
@@ -77,33 +71,46 @@ export function SabPaisaTerminalPayment({
                     setError('No SabPaisa terminal configuration found for this service.');
                     return;
                 }
+                const loaded: SabPaisaTerminalConfig[] = [];
 
-                const docSnap = snap.docs[0];
-                const data = docSnap.data() as Partial<SabPaisaTerminalConfig>;
+                snap.forEach((docSnap) => {
+                    const data = docSnap.data() as Partial<SabPaisaTerminalConfig>;
 
-                if (
-                    !data.clientCode ||
-                    !data.transUserName ||
-                    !data.transUserPassword ||
-                    !data.authKey ||
-                    !data.authIV
-                ) {
+                    if (
+                        !data.clientCode ||
+                        !data.transUserName ||
+                        !data.transUserPassword ||
+                        !data.authKey ||
+                        !data.authIV
+                    ) {
+                        console.warn(
+                            'Skipping SabPaisa terminal with incomplete config:',
+                            docSnap.id,
+                        );
+                        return;
+                    }
+
+                    loaded.push({
+                        name: docSnap.id,
+                        clientCode: data.clientCode,
+                        transUserName: data.transUserName,
+                        transUserPassword: data.transUserPassword,
+                        authKey: data.authKey,
+                        authIV: data.authIV,
+                        channelId: data.channelId,
+                        url: data.url,
+                    });
+                });
+
+                if (loaded.length === 0) {
                     setError(
-                        'Terminal configuration is incomplete. Please ensure clientCode, transUserName, transUserPassword, authKey, and authIV are set in Firestore.',
+                        'No SabPaisa terminals with complete configuration found for this service.',
                     );
                     return;
                 }
 
-                setTerminal({
-                    name: docSnap.id,
-                    clientCode: data.clientCode,
-                    transUserName: data.transUserName,
-                    transUserPassword: data.transUserPassword,
-                    authKey: data.authKey,
-                    authIV: data.authIV,
-                    channelId: data.channelId,
-                    url: data.url,
-                });
+                setTerminals(loaded);
+                setTerminal(loaded[0]);
             } catch (err) {
                 console.error('Failed to load SabPaisa terminal config', err);
                 setError('Failed to load terminal configuration.');
@@ -191,6 +198,26 @@ export function SabPaisaTerminalPayment({
             <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-50">
                 SabPaisa Payment
             </h2>
+            {terminals.length > 0 && (
+                <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                    <p className="font-medium text-slate-700 dark:text-slate-200">
+                        Available terminals ({terminals.length}):
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {terminals.map((t) => (
+                            <span
+                                key={t.name}
+                                className={`rounded-full border px-3 py-1 text-xs ${terminal?.name === t.name
+                                        ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-900/40 dark:text-blue-200'
+                                        : 'border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                                    }`}
+                            >
+                                {t.name}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {loadingConfig && (
                 <p className="mt-4 text-sm text-slate-500">Loading terminal…</p>
