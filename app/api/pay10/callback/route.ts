@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import {
+    collection,
     collectionGroup,
+    doc,
     getDocs,
     limit,
     query,
+    serverTimestamp,
+    setDoc,
     where,
 } from 'firebase/firestore';
 
@@ -127,7 +131,9 @@ export async function POST(request: NextRequest) {
     // Default to failure; mark success only when gateway clearly says so.
     let status: 'success' | 'failure' = 'failure';
 
-    const statusText = (parsed.STATUS ?? parsed.RESPONSE_MESSAGE ?? '').toString().toLowerCase();
+    const statusText = (parsed.STATUS ?? parsed.RESPONSE_MESSAGE ?? '')
+        .toString()
+        .toLowerCase();
     const responseCode = (parsed.RESPONSE_CODE ?? '').toString();
 
     const looksSuccessful =
@@ -137,6 +143,35 @@ export async function POST(request: NextRequest) {
 
     if (looksSuccessful) {
         status = 'success';
+    }
+
+    // Persist the decoded Pay10 response to Firestore:
+    // - original ENCDATA (as received from gateway)
+    // - decrypted raw string (before parsing)
+    // - every key/value from the parsed payload as its own field
+    // - plus some metadata (gateway, status, orderId, receivedAt).
+    try {
+        const paymentsCollection = collection(db, 'payments');
+        const paymentId =
+            typeof orderId === 'string' && orderId.trim().length > 0
+                ? orderId
+                : `pay10_${Date.now().toString(36)}`;
+
+        await setDoc(doc(paymentsCollection, paymentId), {
+            // metadata
+            gateway: 'pay10',
+            status,
+            orderId: orderId ?? null,
+            receivedAt: serverTimestamp(),
+            encdata,
+            decryptedRaw: decrypted,
+            // decoded gateway fields (KEY=VALUE~KEY=VALUE or JSON)
+            ...parsed,
+            // optional: keep a nested copy for easy inspection
+            raw: parsed,
+        });
+    } catch (error) {
+        console.error('Failed to persist Pay10 payment response to Firestore', error);
     }
 
     // Decide where to redirect the user after processing the callback.
