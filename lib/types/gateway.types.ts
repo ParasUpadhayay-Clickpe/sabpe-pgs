@@ -1,4 +1,4 @@
-export type PaymentGateway = 'pay10' | 'unlimit' | 'zwitch';
+export type PaymentGateway = 'pay10' | 'unlimit' | 'zwitch' | 'sabpaisa';
 
 export interface Gateway {
     id: PaymentGateway;

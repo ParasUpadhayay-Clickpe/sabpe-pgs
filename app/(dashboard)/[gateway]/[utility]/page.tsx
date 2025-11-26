@@ -5,6 +5,7 @@ import { UTILITIES } from '../../../../lib/constants/utilities';
 import { Breadcrumb } from '../../../../components/dashboard/breadcrumb';
 import { PaymentWrapper } from '../../../../components/payment/payment-wrapper';
 import { Pay10TerminalPayment } from '../../../../components/payment/pay10-terminal-payment';
+import { SabPaisaTerminalPayment } from '../../../../components/payment/sabpaisa-terminal-payment';
 
 interface PaymentPageParams {
     gateway: string;
@@ -63,6 +64,12 @@ export default async function PaymentPage({
 
             {gatewayConfig.id === 'pay10' ? (
                 <Pay10TerminalPayment gatewayId={gateway} utilityId={utility} />
+            ) : gatewayConfig.id === 'sabpaisa' ? (
+                <SabPaisaTerminalPayment
+                    gatewayId={gateway}
+                    utilityId={utility}
+                    mode={mode}
+                />
             ) : (
                 <PaymentWrapper gateway={gateway} utility={utility} mode={mode} />
             )}

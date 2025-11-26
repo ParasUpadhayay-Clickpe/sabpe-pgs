@@ -16,6 +16,7 @@
     "next": "16.0.4",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "sabpaisa-pg-dev": "^0.0.13",
     "tailwind-merge": "^2.5.4",
     "zod": "^3.24.1",
     "zustand": "^5.0.0-rc.2"

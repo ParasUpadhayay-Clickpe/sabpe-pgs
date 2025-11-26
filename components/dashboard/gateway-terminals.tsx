@@ -49,6 +49,7 @@ export function GatewayTerminals({
                 snap.forEach((docSnap) => {
                     const data = docSnap.data() as Partial<PersistedTerminalConfig>;
                     if (!data.utilityId) return;
+                    console.log(data)
                     configs.push({
                         id: docSnap.id,
                         utilityId: data.utilityId as UtilityType,

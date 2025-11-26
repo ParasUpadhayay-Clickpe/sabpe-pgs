@@ -28,6 +28,15 @@ export const GATEWAYS: Gateway[] = [
         status: 'active',
         supportedUtilities: ['electricity', 'fastag'],
     },
+    {
+        id: 'sabpaisa',
+        name: 'SabPaisa',
+        displayName: 'SabPaisa',
+        logo: '/logos/sabpaisa.png',
+        description: 'SabPaisa payment gateway',
+        status: 'active',
+        supportedUtilities: ['utility', 'electricity', 'education', 'fastag'],
+    },
 ];
 
 
