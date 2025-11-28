@@ -37,7 +37,7 @@ export default async function PaymentPage({
         notFound();
     }
 
-    const modeParam = (resolvedSearch.mode ?? 'uat').toLowerCase();
+    const modeParam = (resolvedSearch.mode ?? 'prod').toLowerCase();
     const mode = modeParam === 'prod' ? 'prod' : 'uat';
 
     return (

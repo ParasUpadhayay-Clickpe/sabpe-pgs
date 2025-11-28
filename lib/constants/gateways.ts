@@ -17,7 +17,7 @@ export const GATEWAYS: Gateway[] = [
         logo: '/logos/unlimit.png',
         description: 'Unlimited payment solutions',
         status: 'active',
-        supportedUtilities: ['utility', 'electricity', 'education'],
+        supportedUtilities: ['utility', 'electricity', 'education', 'fastag'],
     },
     {
         id: 'zwitch',
